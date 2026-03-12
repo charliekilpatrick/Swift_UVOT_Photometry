@@ -1,0 +1,28 @@
+# Conda environment with Swift_host_subtraction and HEASoft.
+#
+# Setup (run once):
+#   conda env create -f environment.yml
+#   conda activate swift-photom
+#   bash scripts/setup_conda_hooks.sh   # auto-initialize HEASoft on activate
+#
+# After setup, just use:
+#   conda activate swift-photom
+#
+# HEASoft is provided by HEASARC's conda channel (6.35+). The setup script
+# configures activation hooks so HEASoft and CALDB are initialized automatically.
+
+name: swift-photom
+channels:
+  - https://heasarc.gsfc.nasa.gov/FTP/software/conda/
+  - conda-forge
+  - defaults
+dependencies:
+  - python >=3.9
+  - pip
+  - numpy
+  - matplotlib
+  - astropy
+  - astroquery
+  - heasoft  # Swift/UVOT tools (uvotmaghist, uvotimsum, fcopy, fappend, etc.)
+  - pip:
+    - .   # install this package in editable form
