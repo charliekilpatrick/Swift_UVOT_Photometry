@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=61", "wheel", "setuptools-scm>=7"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Swift-host-subtraction"
+description = "Package for the extraction of image-subtracted photometry on data from the Ultraviolet Optical Telescope (UVOT) on board the Neil Gehrels Swift Observatory. It mainly runs HEASoft commands through python."
+readme = "README.md"
+license = { text = "GPLv3+" }
+requires-python = ">=3.9"
+authors = [
+  { name = "Giacomo Terreran", email = "gterreran@lco.global" },
+  { name = "Charlie Kilpatrick", email = "ckilpatrick@northwestern.edu" }
+]
+maintainers = [
+  { name = "Giacomo Terreran", email = "gterreran@lco.global" },
+  { name = "Charlie Kilpatrick", email = "ckilpatrick@northwestern.edu" }
+]
+keywords = ["astronomy", "swift", "uvot", "photometry", "heasoft"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: End Users/Desktop",
+  "Natural Language :: English",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Operating System :: POSIX",
+  "Operating System :: Unix",
+  "Operating System :: MacOS",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+dynamic = ["version"]
+dependencies = [
+  "numpy>=1.12.0",
+  "matplotlib>=1.2.0,!=2.1.0,!=2.1.1",
+  "astropy>=1.1.1",
+]
+
+[project.optional-dependencies]
+doc = [
+  "matplotlib",
+  "ipython",
+  "sphinx",
+  "numpydoc",
+  "sphinx_rtd_theme",
+  "sphinxcontrib_programoutput",
+]
+ml = ["theano"]
+dev = [
+  "pytest>=3.3.0",
+  "pytest-cov>=2.4.0",
+  "astroquery",
+]
+
+[project.urls]
+Repository = "https://github.com/gterreran/Swift_host_subtraction"
+Documentation = "https://gterreran.github.io/Swift_host_subtraction/"
+
+[tool.setuptools_scm]
+write_to = "SwiftPhotom/_version.py"
+tag_regex = "^v(?P<version>[0-9].*)$"
+local_scheme = "no-local-version"
+
+[tool.setuptools.packages.find]
+include = ["SwiftPhotom*"]
+
+[tool.setuptools]
+include-package-data = true
+script-files = [
+  "bin/Swift_photom_host.py",
+  "bin/Swift_photom_csv.py",
+  "bin/Swift_batch_photom.py",
+  "bin/Swift_setup.py",
+  "bin/download_swift.py",
+]
+
+[tool.pytest.ini_options]
+addopts = "-v -r s"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["SwiftPhotom"]
+omit = ["SwiftPhotom/tests/*", "SwiftPhotom/_version.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "raise NotImplementedError",
+]
