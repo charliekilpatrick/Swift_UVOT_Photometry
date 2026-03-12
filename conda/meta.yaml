@@ -1,30 +1,37 @@
-{% set data = load_setup_py_data() %}
+# Version should match the Git tag (e.g. v0.1.0) when releasing.
+# Build with: conda build conda/
+{% set version = "0.1.0" %}
 
 package:
-  name: ciera-template
-  version: {{ data['version'] }}
+  name: swift-host-subtraction
+  version: {{ version }}
 
 source:
   path: ..
 
 build:
   number: 0
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script: pip install . --no-deps --ignore-installed
 
 requirements:
   build:
     - python
-    - numpy>=1.11.1,<1.16.0
-
-  run:
+    - pip
+    - setuptools-scm
+  host:
     - python
-    - numpy>=1.11.1,<1.16.0
+  run:
+    - python >=3.9
+    - numpy >=1.12.0
+    - matplotlib
+    - astropy >=1.1.1
 
 test:
   imports:
-    - Swift_host_subtraction
+    - SwiftPhotom
 
 about:
-  home: {{ data['url'] }}
-  license: {{ data['license'] }}
-summary: {{ data['description'] }}
+  home: https://github.com/gterreran/Swift_host_subtraction
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "UVOT image-subtracted photometry via HEASoft (Swift Observatory)"

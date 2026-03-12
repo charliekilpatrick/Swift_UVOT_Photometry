@@ -20,9 +20,11 @@
 """Swift_host_subtraction
 """
 
-from ._version import get_versions
-__version__ = get_versions()['version']
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = "0+unknown"
+
 __author__ = 'Giacomo Terreran <gterreran@lco.global>'
 __credits__ = ['Peter Brown <grbpeter@yahoo.com>']
-__all__ = ['commands','help','uvot']
-del get_versions
+__all__ = ['commands', 'help', 'uvot']

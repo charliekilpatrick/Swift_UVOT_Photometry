@@ -1,94 +1,198 @@
 # Swift Host Subtraction
 
-This is a python package to perform aperture photometry on a single source in data from the Ultraviolet Optical Telescope ([UVOT](https://swift.gsfc.nasa.gov/about_swift/uvot_desc.html); [Roming et al. 2005](https://ui.adsabs.harvard.edu/abs/2005SSRv..120...95R/abstract)) on board the [Neil Gehrels Swift Observatory](https://swift.gsfc.nasa.gov) ([Gehrels et al. 2004](https://ui.adsabs.harvard.edu/abs/2004ApJ...611.1005G/abstract)). In particular, this package is oriented towards transient studies, as it can calculate template-subtracted luminosities if a template image, or a list of template images, is provided. 
+Python package for aperture and template-subtracted photometry on [Swift UVOT](https://swift.gsfc.nasa.gov/about_swift/uvot_desc.html) data. It runs [HEASoft](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/) commands from Python and is aimed at transient studies.
 
-This project is based greatly on [Peter J. Brown](https://pbrown801.github.io)'s work. He wrote the original code in IDL, and published it in his [PhD Thesis](https://etda.libraries.psu.edu/files/final_submissions/4865). The author of this script mainly translated that in python, adding some extra automations, controls, and features. The aperture photometry is done following the standard guidelines described in [Brown et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009AJ....137.4517B/abstract). The image subtraction is performed following the prescriptions outlined in [Brown et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014Ap%26SS.354...89B/abstract). See the full [Documentation](https://gterreran.github.io/Swift_host_subtraction/) (work in progress) for more details.
+Based on [Peter J. Brown](https://pbrown801.github.io)'s IDL work ([PhD thesis](https://etda.libraries.psu.edu/files/final_submissions/4865)); photometry follows [Brown et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009AJ....137.4517B/abstract), image subtraction [Brown et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014Ap%26SS.354...89B/abstract). See [documentation](https://gterreran.github.io/Swift_host_subtraction/) for details.
 
-If you are interested in supernova light curves, check out also the Swift's Optical/Ultraviolet Supernova Archive ([SOUSA](https://pbrown801.github.io/SOUSA/)).
+---
 
-# HEAsoft software
-The package uses [HEAsoft](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/) commands like `uvotmaghist` and `uvotimsum`, which need to be installed separately. Refer to the [website](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/download.html) for a standard installation. Be sure to select the Swift packages in the STEP 2 of the Download. This package has been tested within HEAsoft v6.26. The scripts should work with any version of the Swift calibrations files, but it is highly suggested to have the most updated versions in order to have reliable outputs. Follow [these](https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html) instructions to download and install the CALDB. Refer to [this](https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/swift/) page to check that you currently have the most updated CALDB for UVOT.
+## Installation
 
-# Installation
+### 1. Prerequisites
 
-It is highly suggested (but not formally necessary) to first create and activate a separate new virtual environment. 
-After cloning this repository, from the main folder simply run
+- **Python** 3.9 or newer (3.11–3.12 recommended).
+- **HEASoft** (Swift/UVOT): required for running photometry. Two options:
 
-```
-python setup.py install
-```
+  **Option A – Conda (recommended)**  
+  HEASoft 6.35+ is available via HEASARC’s conda channel. Use the included environment file:
 
+  ```bash
+  conda env create -f environment.yml
+  conda activate swift-photom
+  bash scripts/setup_conda_hooks.sh   # run once to enable auto-init
+  ```
 
-# Using this Code
+  After running the setup script, HEASoft and CALDB will initialize automatically whenever you run `conda activate swift-photom`.
 
-Many things happen under the hood in this script, so to have a full grasp on what is actually happening, the user is invited to consult the full [Documentation](https://gterreran.github.io/Swift_host_subtraction/) (work in progress). 
+  To install HEASoft into an existing environment:
 
-## Preliminary steps
+  ```bash
+  conda install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge heasoft
+  ```
 
-In order to use the package, the terminal needs to know where to find the HEAsoft commands related to UVOT. If you followed the installation available on the HEASARC website, you should just need to execute the following two lines of code
+  If you didn't run the setup script, manually initialize each session:
 
-```
-. path/to/your/headas-init.sh
-source path/to/your/caldbinit.sh
-``` 
+  ```bash
+  source $CONDA_PREFIX/headas-init.sh
+  export CALDB=$CONDA_PREFIX/caldb
+  export CALDBCONFIG=$CALDB/software/tools/caldb.config
+  export CALDBALIAS=$CALDB/software/tools/alias_config.fits
+  ```
 
-Unless you have these 2 lines in your `.bashrc` (or equivalent), you will have to execute them every time you start a new terminal session.
+  Verify with: `caldbinfo INST SWIFT UVOTA`
 
-To check that you have access to the UVOT scripts, and the system recognizes the CALDB folder, run
+  **Option B – Manual install**  
+  Install from [HEASARC](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/download.html) (Swift packages + [CALDB](https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html)). Then in each terminal (or in `~/.bashrc`):
 
-```
-caldbinfo INST SWIFT XRT
-```
+  ```bash
+  . path/to/headas-init.sh
+  source path/to/caldbinit.sh
+  ```
 
-The correct output should be 
+  Check with: `caldbinfo INST SWIFT XRT`
 
-```
-** caldbinfo 1.0.2
-... Local CALDB appears to be set-up & accessible
-** caldbinfo 1.0.2 completed successfully
-```
+### 2. Install the package
 
-or with a more recent CALDB version.
+From the project root:
 
-## Running the code
-
-Before running the code, the script needs to be given the exact coordinates of your transient, and of an empty region of sky without any contaminant source. The script recognizes the DS9 region format, usually saved with a `.reg` extension, which is basically a text file with the coordinates written in the following form
-
-```
-fk5;circle(15:03:49.97,+42:06:50.52,3")
-```
-
-A 3 arcseconds extraction is a sensible aperture extraction for Swift data, but does not necessarily reflect all the user cases. Therefore you can change the size of your aperture in your `.reg` file. The script will automatically extract photometry with a 5 arcseconds aperture as well in any case. The aperture of the background region instead can be much bigger, since the count rates will be averaged over the whole area. A sensible size is 20 arcseconds, but the most important aspect is that no sources must be present in this region.
-The script assumes that the 2 region files are called `sn.reg` and `snbkg.reg` (the author studies mainly supernovae :-) ). If you use these names, the script will recognize them automatically, otherwise you will have to specify the alternative names using the appropriate flags. 
-
-A common practice is to insert the path to all of the Swift images into a list. The images files are the format `sw[obsID][obsIdx]u[filter]_sk.img.gz` (you can unpack the images if you want, the script will recognize them anyway). If you are running the script from a top folder with all the observed epochs inside, you could easily create the list doing
-
-```
-ls */uvot/image/sw*_sk.img.gz > obj.lst
+```bash
+pip install .
 ```
 
-then all your images will be listed inside the `obj.lst` text file (the name and extension here are not important). You can do the same with your template images and create a second list, let's call it `templ.lst` for reference. 
+Editable install (for development):
 
-Once you have the 2 `.reg` files and the lists, you can simply run
+```bash
+pip install -e .
+```
+
+Optional extras (docs, tests):
+
+```bash
+pip install -e ".[doc,dev]"
+```
+
+Run the test suite:
+
+```bash
+pytest tests/ -v
+```
+
+To run HEASoft integration tests, ensure HEASoft and CALDB are initialized first:
+
+```bash
+source $HEADAS/headas-init.sh
+export CALDBCONFIG=$CALDB/software/tools/caldb.config
+export CALDBALIAS=$CALDB/software/tools/alias_config.fits
+pytest tests/test_heasoft.py -v
+```
+
+Tests in `test_heasoft.py` are automatically skipped if HEASoft is not available.
+
+---
+
+## Usage
+
+### Single source (image lists + region files)
+
+1. **Region files** (DS9 format): source circle and background region, e.g.  
+   - `sn.reg`: `fk5;circle(15:03:49.97,+42:06:50.52,3")`  
+   - `snbkg.reg`: background circle or annulus, away from sources.
+
+2. **Image lists**: one file listing science images (and optionally one for templates), e.g.  
+   ```bash
+   ls */uvot/image/sw*_sk.img.gz > obj.lst
+   ```
+
+3. **Run photometry:**
+   ```bash
+   Swift_photom_host.py obj.lst [templ.lst] -s sn.reg -b snbkg.reg
+   ```
+   Use `-h` for options (e.g. `-a` for AB mags, `-d` detection threshold). Outputs go in `reduction/` (JSON, `.phot` file, and per-filter figures).
+
+### Multiple sources from a CSV file
+
+Use a CSV with columns **name**, **RA**, **Dec**, and optionally **date** (for reference; does not filter images). RA/Dec can be decimal degrees or sexagesimal (e.g. `15:03:49.97`).
+
+Example `sources.csv`:
+
+```csv
+name,ra,dec,date
+SN2020oi,229.5927,21.9832,2020-01-07
+M51,202.4695,47.1952,
+```
+
+Run:
+
+```bash
+Swift_photom_csv.py sources.csv obj.lst [templ.lst] -o results.csv
+```
+
+- For each row the script writes temporary source and background regions at the given coordinates (default 3" aperture, annulus background), runs the same photometry pipeline, and saves outputs under `reduction_<name>/`.
+- A combined table is written to `results.csv` (or the path given after `-o`).
+
+Optional flags: `--ap-arcsec`, `--bkg-inner`, `--bkg-outer`, `-a` (AB mags), `-d` (detection limit). Run `Swift_photom_csv.py -h` for details.
+
+### Batch processing with time constraints
+
+For transient surveys, use `Swift_batch_photom.py` to automatically download Swift data and run photometry with time-based science/template selection.
+
+**Input file format** (CSV or whitespace-separated):
 
 ```
-Swift_photom_host.py obj.lst templ.lst
+name,ra,dec,tpeak
+SN2020abc,150.123,+25.456,800.5
+SN2021xyz,210.987,-10.234,1200.3
 ```
-The template file is not necessary to run the script. If no template list is provided, unsubtracted aperture photometry will be performed. You can access the script helper with the `-h` flag, which contains (hopefully) thorough descriptions of all the extra functionalities and features of the code, like different way to format the input.
 
+Where **tpeak** is JD − 2458000 (days relative to JD 2458000).
 
-## The output
+**Time constraints:**
+- **Science data:** tpeak − 60 days to tpeak + 365 days  
+- **Template data:** observations before tpeak − 60 days
 
-The code will create a folder named `reduction` which will contain all the products of the extraction. In the top folder, the 2 `.json` files contain the final magnitudes (by default in Vega, but you can change that with the `-a` flag) of the 2 extractions, the one with the aperture size provided by the user, and the one with a 5 arcsecond aperture. Then there will be a folder for every filter. These contain quicklook figures to check the goodness of the extraction. Check the full [Documentation](https://gterreran.github.io/Swift_host_subtraction/) (work in progress) for more info about all the product files.
+**Run:**
 
-*WARNING* - every time you run `Swift_photom_host`, the folder will be deleted and recreated, so if you need to compare different reductions, remember to rename that folder to avoid unwanted superscription.
+```bash
+Swift_batch_photom.py sources.txt -o /path/to/output
+```
 
+This will:
+1. Query HEASARC for Swift UVOT observations of each source
+2. Download data to a shared archive (avoids re-downloading)
+3. Create symbolic links from object directories to the archive
+4. Create region files and image lists
+5. Run photometry with template subtraction
+6. Save results to `<outdir>/<name>/`
 
-# Contributions
+**Archive directory:** By default, downloaded observations are stored in `<outdir>/archive/` and symlinked to each object's directory. If an observation was already downloaded for a previous object, it's reused automatically. Use `--no-archive` to disable this and download directly to each object directory.
 
-# References
+**Optimized downloads:** By default, only sky images (`*_sk.img.gz`) needed for photometry are downloaded. Exposure maps, raw images, and housekeeping files are skipped to save bandwidth and disk space. Use `--download-all` to fetch all UVOT files.
 
-This code follows the guidelines and prescriptions described in [Brown et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009AJ....137.4517B/abstract) and [Brown et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014Ap%26SS.354...89B/abstract). So if you use this piece of software for your publication, you should at least cite these 2 papers.
+**Options:**
+- `--pre-days` / `--post-days`: adjust science window (default: −60 to +365)
+- `--radius`: HEASARC search radius in arcmin (default: 30)
+- `--phot-radius`: photometry aperture in arcsec (default: 3)
+- `--archive-dir`: custom archive directory (default: `<outdir>/archive/`)
+- `--no-archive`: disable archive, download directly to object directories
+- `--download-all`: download all UVOT files (default: only `*_sk.img*`)
+- `--no-download`: skip downloading, use existing data
+- `--dry-run`: show what would be done without executing
 
-If you also want to cite to this GitHub repository, you can.  
+Run `Swift_batch_photom.py -h` for all options.
 
+---
+
+## Repository
+
+- **Package:** `Swift-host-subtraction` (PyPI) / **import:** `SwiftPhotom`
+- **Repo:** [github.com/gterreran/Swift_host_subtraction](https://github.com/gterreran/Swift_host_subtraction)
+- **License:** GPLv3+ ([LICENSE](LICENSE))
+- **Layout:** `SwiftPhotom/` (package), `bin/` (CLI scripts), `docs/`, `tests/`
+
+**Warning:** Each run of `Swift_photom_host` (or each source in the CSV run) overwrites or creates a new `reduction` (or `reduction_<name>`) directory; copy or rename results if you need to keep them.
+
+---
+
+## References
+
+If you use this software in a publication, please cite [Brown et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009AJ....137.4517B/abstract) and [Brown et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014Ap%26SS.354...89B/abstract). You may also cite this repository.

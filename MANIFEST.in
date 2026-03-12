@@ -1,5 +1,4 @@
 include LICENSE README.md MANIFEST.in
-include versioneer.py
-
 recursive-include SwiftPhotom *.py
 recursive-include bin *.py
+recursive-include scripts *.sh
