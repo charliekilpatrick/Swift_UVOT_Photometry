@@ -1,4 +1,4 @@
-"""Custom exceptions for Swift_host_subtraction."""
+"""Custom exceptions for Swift UVOT Photometry."""
 
 
 class FilterError(Exception):

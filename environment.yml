@@ -1,9 +1,15 @@
-# Conda environment with Swift_host_subtraction and HEASoft.
+# Conda environment for Swift UVOT Photometry and HEASoft.
 #
 #   conda env create -f environment.yml
 #   conda activate swift-photom
+#   bash setup_caldb.sh   # one-time: installs CALDB config into $CONDA_PREFIX/caldb
 #
-# After each activate, initialize HEASoft and CALDB (or add to your shell profile):
+# CALDB is not shipped with the heasoft conda package. The setup_caldb.sh script
+# downloads CALDB setup files from HEASARC so uvotmaghist etc. can access
+# calibration data (remote access by default). After running it, set CALDB,
+# CALDBCONFIG, and CALDBALIAS as printed (or add to your shell profile).
+#
+# After each activate, initialize HEASoft (and CALDB if not in profile):
 #   source $CONDA_PREFIX/headas-init.sh
 #   export CALDB=$CONDA_PREFIX/caldb
 #   export CALDBCONFIG=$CALDB/software/tools/caldb.config

@@ -9,11 +9,11 @@ Installing SwiftPhotom
 
 It is highly suggested (but not formally necessary) to first create and activate a separate new virtual environment. 
 
-The easiest method to install SwiftPhotom is using `pip <https://pip.pypa.io/en/stable/>`_ directly from the `GitHub repository <https://github.com/gterreran/Swift_host_subtraction.git>`_:
+The easiest method to install SwiftPhotom is using `pip <https://pip.pypa.io/en/stable/>`_ directly from the `GitHub repository <https://github.com/ckilpatrick/Swift-uvot-photometry.git>`_:
 
 .. code-block:: bash
 
-   $ pip install git+https://github.com/gterreran/Swift_host_subtraction.git
+   $ pip install git+https://github.com/ckilpatrick/Swift-uvot-photometry.git
 
 Alternatively, after cloning this repository, from the main folder run:
 

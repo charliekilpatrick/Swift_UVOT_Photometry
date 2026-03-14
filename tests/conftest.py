@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Pytest fixtures for Swift_host_subtraction tests."""
+"""Pytest fixtures for Swift UVOT Photometry tests."""
 
 import os
 import tempfile

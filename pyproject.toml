@@ -3,8 +3,8 @@ requires = ["setuptools>=61", "wheel", "setuptools-scm>=7"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Swift-host-subtraction"
-description = "Package for the extraction of image-subtracted photometry on data from the Ultraviolet Optical Telescope (UVOT) on board the Neil Gehrels Swift Observatory. It mainly runs HEASoft commands through python."
+name = "swift-uvot-photometry"
+description = "Swift UVOT Photometry: aperture and template-subtracted photometry on data from the Ultraviolet Optical Telescope (UVOT) on board the Neil Gehrels Swift Observatory. Runs HEASoft commands from Python."
 readme = "README.md"
 license = { text = "GPLv3+" }
 requires-python = ">=3.9"
@@ -61,8 +61,8 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/gterreran/Swift_host_subtraction"
-Documentation = "https://gterreran.github.io/Swift_host_subtraction/"
+Repository = "https://github.com/ckilpatrick/Swift-uvot-photometry"
+Documentation = "https://ckilpatrick.github.io/Swift-uvot-photometry/"
 
 [tool.setuptools_scm]
 write_to = "SwiftPhotom/_version.py"
