@@ -3,7 +3,15 @@
 Input types
 ###########
 
-``SwiftPhotom`` can deal with inputs in different formats. Below you can find details about each of them.
+The main photometry script (``Swift_photom_host.py``) expects:
+
+1. **Region files** (DS9 format): source circle (e.g. ``sn.reg``) and background
+   region (e.g. ``snbkg.reg``). Use ``-s`` and ``-b`` to specify paths; defaults
+   are ``sn.reg`` and ``snbkg.reg``.
+2. **Image list(s) or ObsID(s):** one or two positional arguments — object list
+   (required) and optional template list for template subtraction.
+
+Below are the supported input formats for the image/ObsID part.
 
 ====================
 Swift Data Structure
@@ -38,13 +46,16 @@ depending what files you downloaded from the Swift archive. The ``SwiftPhotom`` 
 Target_ID
 =========
 
-The ``Target_ID`` can be provided as a single input, like the following example:
+The ``Target_ID`` (8 digits) can be provided as the object input. Example:
 
 .. code-block:: bash
 
-	Swift_photom_host.py 13612
-	
-The script will search in the working folder, and in all the subfolders, for files in the form ``sw[Target_ID]*_sk.img.gz`` (or also not compressed), and work on all of them. The script will automatically add leading zeros to make the ``Target_ID`` 8 digits long so both ``13612`` and ``00013612`` will work. Be carefull not to include also the ``Obs_segment``, as it will not work. Moreover, any file renaming will likely prevent the script to recognize the correct files. 
+	Swift_photom_host.py 13612 -s sn.reg -b snbkg.reg
+
+The script searches the working directory and subdirectories for files matching
+``sw[Target_ID]*_sk.img.gz`` (or ``_sk.img``). Leading zeros are added
+automatically (e.g. ``13612`` or ``00013612``). Do not include the ``Obs_segment``
+(11-digit ObsID); file renaming may prevent the script from finding the files. 
 
 =============
 List of files
@@ -68,14 +79,17 @@ then all your images will be listed inside the ``obj.lst`` text file (the name a
 
 
 
-The script will be run simply by:
+Run the script with the list file and region files:
 
 .. code-block:: bash
 
-	Swift_photom_host.py obj.lst
- 
+	Swift_photom_host.py obj.lst -s sn.reg -b snbkg.reg
 
-This method is more versatile than using the ``Target_ID``, as it allows to be more selective with the epochs and filters to analyse, i.e. by including or removing files from the text files. Moreover, renaming files can also be possible, as long as the ``*_sk.img.gz`` (or ``*_sk.img``) extension is kept.
+For template subtraction, add a second list: ``Swift_photom_host.py obj.lst templ.lst -s sn.reg -b snbkg.reg``.
+
+This method is more versatile than using the ``Target_ID``, as it allows selecting
+epochs and filters by editing the list. Files can be renamed as long as the
+``*_sk.img.gz`` (or ``*_sk.img``) suffix is kept.
 
 
 ===========================
