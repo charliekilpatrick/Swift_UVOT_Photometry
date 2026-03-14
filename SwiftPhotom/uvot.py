@@ -1,19 +1,38 @@
-import os,json
+"""UVOT-specific logic: filter handling, aspect correction, product creation, photometry extraction."""
+import os
+import json
 import astropy.io.fits as pf
 import SwiftPhotom.errors
 import SwiftPhotom.commands as sc
 import numpy as np
 import matplotlib.pyplot as plt
 
-ZP={'V':[17.88,0.01],'B':[18.98,0.02],'U':[19.36,0.02],'UVW1':[18.95,0.03],'UVM2':[18.54,0.03],'UVW2':[19.11,0.03]}
-Vega={'V':-0.01,'B':-0.13,'U':1.02,'UVW1':1.51,'UVM2':1.69,'UVW2':1.73}
+ZP = {'V': [17.88, 0.01], 'B': [18.98, 0.02], 'U': [19.36, 0.02], 'UVW1': [18.95, 0.03],
+      'UVM2': [18.54, 0.03], 'UVW2': [19.11, 0.03]}
+Vega = {'V': -0.01, 'B': -0.13, 'U': 1.02, 'UVW1': 1.51, 'UVM2': 1.69, 'UVW2': 1.73}
 
-mjdref = 51910.0  #  jd reference used by swift
+mjdref = 51910.0  # JD reference used by Swift
+
 
 def sort_filters(_filt_list):
-    '''
-    Function to recognize filter-related keywords
-    '''
+    """Parse filter selection into a list of UVOT filter names.
+
+    Parameters
+    ----------
+    _filt_list : str
+        One of ``'ALL'``, ``'OPT'``, ``'UV'``, or a comma-separated list of
+        filter names (e.g. ``'V,U,UVM2'``). Case-insensitive.
+
+    Returns
+    -------
+    list of str
+        Canonical filter names, e.g. ``['V', 'B', 'U', 'UVW1', 'UVM2', 'UVW2']``.
+
+    Raises
+    ------
+    SwiftPhotom.errors.FilterError
+        If no valid filter is found (e.g. all tokens invalid).
+    """
     
     full_filter_list=['V','B','U','UVW1','UVM2','UVW2']
     if _filt_list=='ALL':
@@ -36,19 +55,22 @@ def sort_filters(_filt_list):
         return out_filter_list
 
 def load_obsid(_obsid_string):
-    '''
-    Looking for sky frames with the given ObsID.
-    The search is done in the working directory
-    and in all subdirectories.
-    It will look for file with the conventional
-    naming
-    
-    sw[obsID][obsIdx]u[filter]_sk.img.gz
-    
-    or without the .gz
-    '''
+    """Find sky frames for a given Swift ObsID under the current working directory.
 
-    #in the file path the ObsID have 8 digits, with leading zeros
+    Searches recursively for files matching ``sw<obsID>*_sk.img`` or ``*_sk.img.gz``.
+    Skips paths containing ``products``.
+
+    Parameters
+    ----------
+    _obsid_string : str
+        Observation ID (e.g. ``'00013174'`` or ``'13174'``); zero-padded to 8 digits.
+
+    Returns
+    -------
+    list of str
+        Paths to matching sky frame files.
+    """
+    # In the file path the ObsID has 8 digits, with leading zeros
     obsid=_obsid_string.zfill(8)
 
     out_file_list=[]
@@ -65,23 +87,30 @@ def load_obsid(_obsid_string):
 
 
 def interpret_infile(_infile):
-    '''
-    Interpret what type of input the user is providing
-    
-    _infile will be a list of strings with either one
-    or two elements
-    
-    The output will be file_list, a list containing
-    2 lists:
-    file_list[0] will be the object file list
-    file_list[1] will be the template file list
-    
-    Creating a single list, I can fill them both
-    with a for loop, even if only the object list is
-    provided.
-    '''
-    
-    file_list=[[],[]]
+    """Interpret CLI input into object and template file lists.
+
+    Each element of _infile can be: a path to a single sky image, a path to a
+    list file (one path per line), or an ObsID string. Expands ObsIDs and list
+    files into full file paths.
+
+    Parameters
+    ----------
+    _infile : list of str
+        One or two elements: [object_spec], or [object_spec, template_spec].
+
+    Returns
+    -------
+    list of list of str
+        [object_file_list, template_file_list]. Flattened file paths per role.
+
+    Raises
+    ------
+    SwiftPhotom.errors.ListError
+        If a list file contains no valid paths or ObsIDs.
+    SwiftPhotom.errors.FileNotFound
+        If an ObsID is given but no matching sky frames are found.
+    """
+    file_list = [[], []]
     
     for i in range(len(_infile)):
         if os.path.isfile(_infile[i]):
@@ -120,9 +149,18 @@ def interpret_infile(_infile):
     return file_list
 
 def get_aperture_size(_reg):
-    '''
-    Retrieve the aperture size from the region file.
-    '''
+    """Read the aperture radius in arcsec from a DS9 circle region file.
+
+    Parameters
+    ----------
+    _reg : str
+        Path to a DS9 region file containing a circle (e.g. ``fk5;circle(...,3")``).
+
+    Returns
+    -------
+    str
+        Aperture size as string (e.g. ``'3'`` or ``'5'``), without the arcsec suffix.
+    """
     with open(_reg) as inp:
         for line in inp:
             if line[0]=='#':continue
@@ -136,31 +174,95 @@ def get_aperture_size(_reg):
     
     return size
 
-def check_aspect_correction(_infile):
-    '''
-    Simply check if the 'ASPCORR' label in the header
-    of each extension is equal to 'DIRECT'. If it isn't,
-    it prints out a WARNING, notifying that astrometry
-    could be off.
-    '''
-    
-    hdu=pf.open(_infile)
-    for i in range(len(hdu)):
-        if hdu[i].name=='PRIMARY': continue
-        #print(hdu[i].header['FRAMTIME'])
-        if hdu[i].header['ASPCORR'] !='DIRECT':
-            ext = hdu[i].header['EXTNAME']
-            print('WARNING - Extension '+str(i)+ ' '+ext+' of '+_infile+' has not been aspect corrected. You should check the astrometry.')
+def _warn_bad_aspect(_infile, bad_inds):
+    """Print one warning per extension that is not aspect-corrected (ASPCORR != 'DIRECT').
+
+    Parameters
+    ----------
+    _infile : str
+        Path to the FITS file.
+    bad_inds : list of int
+        Extension indices to warn about.
+    """
+    hdu = pf.open(_infile)
+    for i in bad_inds:
+        ext = hdu[i].header.get('EXTNAME', str(i))
+        print('WARNING - Extension '+str(i)+ ' '+str(ext)+ ' of '+_infile+' has not been aspect corrected. Skipping in analysis.')
     hdu.close()
     del hdu
 
+
+def check_aspect_correction(_infile):
+    """Identify aspect-corrected extensions and print warnings for the rest.
+
+    Parameters
+    ----------
+    _infile : str
+        Path to the FITS file.
+
+    Returns
+    -------
+    good : list of int
+        Extension indices with ASPCORR == 'DIRECT'.
+    bad : list of int
+        Extension indices without aspect correction (warnings printed).
+    """
+    good, bad = get_aspect_corrected_extension_indices(_infile)
+    if bad:
+        _warn_bad_aspect(_infile, bad)
+    return good, bad
+
+
+def get_aspect_corrected_extension_indices(_infile):
+    """Return extension indices split by aspect correction status.
+
+    Only extensions with ASPCORR == 'DIRECT' are considered good for analysis;
+    others are excluded to avoid bad astrometry.
+
+    Parameters
+    ----------
+    _infile : str
+        Path to the FITS file.
+
+    Returns
+    -------
+    good : list of int
+        Extension indices where ASPCORR == 'DIRECT'.
+    bad : list of int
+        Extension indices where ASPCORR != 'DIRECT' or missing.
+    """
+    hdu = pf.open(_infile)
+    good = []
+    bad = []
+    for i in range(len(hdu)):
+        if hdu[i].name == 'PRIMARY':
+            continue
+        try:
+            if hdu[i].header.get('ASPCORR', '').strip().upper() == 'DIRECT':
+                good.append(i)
+            else:
+                bad.append(i)
+        except (KeyError, TypeError):
+            bad.append(i)
+    hdu.close()
+    del hdu
+    return good, bad
+
+
 def sort_file_list(_flist):
-    '''
-    Organize the file list into a dictionary
-    sorted by filter
-    '''
-    
-    out_file_list={}
+    """Group file paths by UVOT filter using the FILTER keyword in each FITS primary header.
+
+    Parameters
+    ----------
+    _flist : list of str
+        Paths to UVOT sky or product FITS files.
+
+    Returns
+    -------
+    dict
+        Mapping of filter name to list of file paths (e.g. ``{'U': [path1, path2]}``).
+    """
+    out_file_list = {}
     for file in _flist:
         filter=pf.getheader(file)['FILTER']
         if filter not in out_file_list:
@@ -169,39 +271,50 @@ def sort_file_list(_flist):
 
     return out_file_list
 
-def combine(_list,_outfile):
-    '''
-    Combines images with fappend
-    '''
-    
-    for i,img in enumerate(_list):
+def combine(_list, _outfile):
+    """Concatenate multiple FITS files into one using fcopy for the first and fappend for the rest.
+
+    Parameters
+    ----------
+    _list : list of str
+        Ordered list of input FITS file paths.
+    _outfile : str
+        Output FITS file path (overwritten if present).
+    """
+    for i, img in enumerate(_list):
         if i==0:
             sc.fcopy(img,_outfile)
         else:
             sc.fappend(img,_outfile)
 
-def create_product(_flist,_filter,template=0,no_combine=0):
-    '''
-    If a file has multiple extensions, these are
-    first combined into a single image. If the
-    FRAMTIMEs are different, than no merging is
-    not possible. The merging is carried out by
-    uvotimsum, and the combined images are saved
-    in the 'mid-products' folder, created for each
-    filer inside the 'reduction' directory.
-    
-    If the user prefer to extract every extension
-    separately, they can use the --no_combine flag.
-    
-    All the files are then appended to a single
-    'product file', which end up containing all
-    extensions of all images.
-    
-    During this step, the aspect correction for each
-    file is also checked.
-    '''
-    
-    out_dir=os.path.join('reduction',_filter,'mid-products')
+def create_product(_flist, _filter, template=0, no_combine=0, allow_different_frametime=False):
+    """Build a single product FITS file per filter from a list of sky images.
+
+    For each file, only aspect-corrected (ASPCORR=DIRECT) extensions are used.
+    By default, multi-extension files are merged with uvotimsum; if FRAMTIMEs
+    differ, extensions are left unmerged unless allow_different_frametime is True.
+    With no_combine=True, each extension is written separately. All resulting
+    images are then concatenated into one product file in reduction/<filter>/.
+
+    Parameters
+    ----------
+    _flist : list of str
+        Paths to UVOT sky FITS files for this filter.
+    _filter : str
+        Filter name (e.g. 'U', 'UVW2') for directory and filename.
+    template : int, optional
+        If non-zero, output is named as template product (e.g. templ_<filter>.img).
+    no_combine : int, optional
+        If non-zero, do not merge extensions with uvotimsum; append each extension.
+    allow_different_frametime : bool, optional
+        If True, merge extensions even when FRAMTIME differs (ignoreframetime=yes).
+
+    Returns
+    -------
+    str
+        Path to the product FITS file (e.g. reduction/U/<object>_U.img).
+    """
+    out_dir = os.path.join('reduction', _filter, 'mid-products')
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
     
@@ -211,14 +324,20 @@ def create_product(_flist,_filter,template=0,no_combine=0):
 
     prod_list=[]
     for file in _flist:
-        check_aspect_correction(file)
+        good_inds, bad_inds = get_aspect_corrected_extension_indices(file)
+        if bad_inds:
+            _warn_bad_aspect(file, bad_inds)
+        if not good_inds:
+            print('WARNING - Skipping '+file+' (no aspect-corrected extensions).')
+            continue
         
         hdu=pf.open(file)
         
         if no_combine:
-            for i in range(len(hdu)):
-                if hdu[i].name=='PRIMARY': continue
+            for i in good_inds:
                 prod_list.append(file+'['+str(i)+']')
+            hdu.close()
+            del hdu
             continue
         
         obsID=hdu[0].header['OBS_ID']
@@ -227,17 +346,27 @@ def create_product(_flist,_filter,template=0,no_combine=0):
             os.remove(out_file)
         
         framtime=[]
-
-        for i in range(len(hdu)):
-            if hdu[i].name=='PRIMARY': continue
+        for i in good_inds:
             framtime.append(hdu[i].header['FRAMTIME'])
-        if len(set(framtime))==1:
-            sc.uvotimsum(file,out_file,_exclude='none')
+        
+        same_frametime = len(set(framtime)) == 1
+        exclude_list = ','.join(str(i) for i in bad_inds) if bad_inds else 'none'
+
+        if same_frametime and not bad_inds:
+            sc.uvotimsum(file, out_file, _exclude='none')
+            prod_list.append(out_file)
+        elif same_frametime and bad_inds:
+            sc.uvotimsum(file, out_file, _exclude=exclude_list)
+            prod_list.append(out_file)
+        elif allow_different_frametime:
+            if bad_inds:
+                sc.uvotimsum(file, out_file, _exclude=exclude_list, ignoreframetime=True)
+            else:
+                sc.uvotimsum(file, out_file, _exclude='none', ignoreframetime=True)
             prod_list.append(out_file)
         else:
             print('WARNING - extensions of '+file+' have different FRAMTIMEs. Left unmerged.')
-            for i in range(len(hdu)):
-                if hdu[i].name=='PRIMARY': continue
+            for i in good_inds:
                 prod_list.append(file+'['+str(i)+']')
         hdu.close()
         del hdu
@@ -259,8 +388,26 @@ def create_product(_flist,_filter,template=0,no_combine=0):
 
     return prod_out_file
 
-def run_uvotmaghist(_prod_file,_sn_reg,_bg_reg,_filter):
-    fig_dir=os.path.join('reduction',_filter,'figures')
+def run_uvotmaghist(_prod_file, _sn_reg, _bg_reg, _filter):
+    """Run uvotmaghist on a product file and write photometry FITS and plot.
+
+    Parameters
+    ----------
+    _prod_file : str
+        Path to the stacked or combined product FITS file.
+    _sn_reg : str
+        DS9 source region file path.
+    _bg_reg : str
+        DS9 background region file path.
+    _filter : str
+        Filter name (for figure subdirectory).
+
+    Returns
+    -------
+    str
+        Path to the output photometry FITS file (e.g. ..._phot.fits).
+    """
+    fig_dir = os.path.join('reduction', _filter, 'figures')
     photo_out=_prod_file[:-4]+'_phot.fits'
     gif_out=os.path.join(fig_dir,_prod_file.split('/')[-1][:-4]+'_phot.gif')
     if os.path.isfile(photo_out):
@@ -272,14 +419,33 @@ def run_uvotmaghist(_prod_file,_sn_reg,_bg_reg,_filter):
     return photo_out
 
 def extract_photometry(_phot_file, _ab, _det_limit, _ap_size, _templ_file=None):
+    """Extract magnitudes from uvotmaghist output and optionally subtract template.
 
-    ####
-    #The default aperture of uvotmaghist is 5 arcsec.
-    #Corrections to retrieve this fluxes are provide.
-    #We can compare the 2 apertures.
-    ####
-    
-    if _templ_file!=None:
+    Uses both the user aperture and the 5 arcsec aperture; applies aperture and
+    coincidence-loss corrections. Detections above _det_limit S/N get magnitude
+    and error; below that, 3-sigma upper limit is reported. Writes count-rate and
+    magnitude figures to reduction/<filter>/figures/.
+
+    Parameters
+    ----------
+    _phot_file : str
+        Path to the uvotmaghist output FITS file.
+    _ab : int or bool
+        If true, use AB magnitudes; otherwise Vega.
+    _det_limit : float
+        Signal-to-noise threshold for detection vs. upper limit.
+    _ap_size : str
+        User aperture size in arcsec (e.g. '3').
+    _templ_file : str, optional
+        Path to template photometry FITS; if given, template subtraction is applied.
+
+    Returns
+    -------
+    dict
+        Keys ``'<ap>_arcsec'`` and ``'5_arcsec'``, each a list of dicts with
+        'filter', 'mjd', 'mag', 'mag_err', 'upper_limit', 'mag_limit', etc.
+    """
+    if _templ_file is not None:
         template=1
 
     if _ab==1:
@@ -297,8 +463,8 @@ def extract_photometry(_phot_file, _ab, _det_limit, _ap_size, _templ_file=None):
     BCR_temp={}
     BCRe_temp={}
 
-    for i,file in enumerate([_templ_file,_phot_file]):
-        if file==None:
+    for i, file in enumerate([_templ_file, _phot_file]):
+        if file is None:
             #In case there is no template, nothing will be subtracted.
             BCR_temp={user_ap:0.,'5_arcsec':0.}
             BCRe_temp={user_ap:0.,'5_arcsec':0.}
@@ -519,10 +685,21 @@ def extract_photometry(_phot_file, _ab, _det_limit, _ap_size, _templ_file=None):
 
     return mag
 
-def output_mags(_mag,_ap_size,obj=None):
-    user_ap = _ap_size+'_arcsec'
+def output_mags(_mag, _ap_size, obj=None):
+    """Write extracted photometry to JSON files and optionally a .phot file.
 
-    with open(os.path.join('reduction',_ap_size+'_arcsec_photometry.json'),'w') as out:
+    Parameters
+    ----------
+    _mag : dict
+        Output from extract_photometry (keys like '3_arcsec', '5_arcsec').
+    _ap_size : str
+        User aperture size string (e.g. '3').
+    obj : str, optional
+        If set, also write `<obj>_Swift.phot` with 5 arcsec mags.
+    """
+    user_ap = _ap_size + '_arcsec'
+
+    with open(os.path.join('reduction', _ap_size + '_arcsec_photometry.json'), 'w') as out:
         out.write(json.dumps(_mag[user_ap], indent = 4))
     
     with open(os.path.join('reduction','5_arcsec_photometry.json'),'w') as out:

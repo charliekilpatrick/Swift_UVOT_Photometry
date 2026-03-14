@@ -232,3 +232,56 @@ class TestDownloadArchive:
             stats = batch_module.download_swift_data(table, tmpdir, archive_dir=None)
             assert stats['n_linked'] == 0  # No archive = no linking
             assert stats['n_skipped_fov'] == 1
+
+
+class TestIsNumber:
+    def test_float_is_number(self, batch_module):
+        assert batch_module.is_number(3.14) is True
+        assert batch_module.is_number(-1) is True
+
+    def test_string_number_is_number(self, batch_module):
+        assert batch_module.is_number("800.5") is True
+
+    def test_invalid_not_number(self, batch_module):
+        assert batch_module.is_number("abc") is False
+        assert batch_module.is_number(None) is False
+
+
+class TestTpeakToTime:
+    def test_tpeak_to_time(self, batch_module):
+        t = batch_module.tpeak_to_time(800.5)
+        assert t is not None
+        assert abs(t.jd - (2458000 + 800.5)) < 0.001
+
+
+class TestParseInputFile:
+    def test_parse_csv(self, batch_module, tmp_path):
+        path = tmp_path / "sources.csv"
+        path.write_text("name,ra,dec,tpeak\nSN1,150.0,+25.0,800.5\nSN2,200.0,-10.0,1200.0\n")
+        sources = batch_module.parse_input_file(str(path))
+        assert len(sources) == 2
+        assert sources[0]['name'] == 'SN1'
+        assert sources[0]['tpeak'] == 800.5
+        assert sources[1]['name'] == 'SN2'
+
+    def test_parse_whitespace(self, batch_module, tmp_path):
+        path = tmp_path / "sources.txt"
+        path.write_text("SN1 150.0 25.0 800.5\nSN2 200.0 -10.0 1200.0\n")
+        sources = batch_module.parse_input_file(str(path))
+        assert len(sources) == 2
+        assert sources[0]['name'] == 'SN1' and sources[0]['tpeak'] == 800.5
+
+    def test_parse_empty_returns_empty(self, batch_module, tmp_path):
+        path = tmp_path / "empty.csv"
+        path.write_text("name,ra,dec,tpeak\n")
+        sources = batch_module.parse_input_file(str(path))
+        assert sources == []
+
+
+class TestCheckHeasoftEnvironment:
+    def test_returns_tuple(self, batch_module):
+        ok, issues = batch_module.check_heasoft_environment()
+        assert isinstance(ok, bool)
+        assert isinstance(issues, list)
+        for i in issues:
+            assert isinstance(i, str)

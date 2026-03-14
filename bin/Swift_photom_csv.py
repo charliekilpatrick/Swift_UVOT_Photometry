@@ -21,7 +21,20 @@ import SwiftPhotom.uvot as up
 
 
 def parse_coord(ra, dec):
-    """Parse RA, Dec (degrees or sexagesimal) to SkyCoord."""
+    """Parse RA and Dec from degrees or sexagesimal to an ICRS SkyCoord.
+
+    Parameters
+    ----------
+    ra : str or float
+        Right ascension (decimal degrees or e.g. '15:03:49.97').
+    dec : str or float
+        Declination (decimal degrees or e.g. '+42:06:50.52').
+
+    Returns
+    -------
+    astropy.coordinates.SkyCoord
+        ICRS coordinates.
+    """
     ra_str, dec_str = str(ra).strip(), str(dec).strip()
     if ":" in ra_str or ":" in dec_str:
         unit = (u.hourangle, u.deg)
@@ -31,7 +44,23 @@ def parse_coord(ra, dec):
 
 
 def write_regions(coord, sn_reg_path, bg_reg_path, ap_arcsec=3.0, bkg_inner=100.0, bkg_outer=200.0):
-    """Write DS9 source and background region files."""
+    """Write DS9 source circle and background annulus region files.
+
+    Parameters
+    ----------
+    coord : astropy.coordinates.SkyCoord
+        Source position.
+    sn_reg_path : str
+        Path for the source circle region file.
+    bg_reg_path : str
+        Path for the background annulus region file.
+    ap_arcsec : float, optional
+        Source aperture radius in arcsec (default 3).
+    bkg_inner : float, optional
+        Background annulus inner radius in arcsec (default 100).
+    bkg_outer : float, optional
+        Background annulus outer radius in arcsec (default 200).
+    """
     ra_hms, dec_dms = coord.to_string(style="hmsdms", sep=":").split()
     with open(sn_reg_path, "w") as f:
         f.write(f'fk5;circle({ra_hms},{dec_dms},{ap_arcsec}")')
@@ -49,8 +78,41 @@ def run_photometry_for_source(
     det_limit,
     filt_list,
     no_combine,
+    allow_different_frametime=False,
 ):
-    """Run the same pipeline as Swift_photom_host for one source."""
+    """Run the same pipeline as Swift_photom_host for one source.
+
+    Builds product files per filter, runs uvotmaghist, extracts photometry,
+    and writes JSON and .phot under reduction/ (and obj name).
+
+    Parameters
+    ----------
+    name : str
+        Source name (used for output directory and .phot filename).
+    sn_reg : str
+        Path to source region file.
+    bg_reg : str
+        Path to background region file.
+    obj_file_list : dict
+        Filter -> list of object image paths (from sort_file_list).
+    tem_file_list : dict
+        Filter -> list of template image paths.
+    ab : bool
+        Use AB magnitudes if True.
+    det_limit : float
+        S/N detection threshold.
+    filt_list : list of str
+        Filters to process.
+    no_combine : bool
+        Do not merge extensions (no_combine flag).
+    allow_different_frametime : bool, optional
+        Allow merging extensions with different FRAMTIME.
+
+    Returns
+    -------
+    dict
+        Magnitude dict with keys like '3_arcsec', '5_arcsec'.
+    """
     ap_size = up.get_aperture_size(sn_reg)
     user_ap = ap_size + "_arcsec"
     mag = {user_ap: [], "5_arcsec": []}
@@ -62,13 +124,13 @@ def run_photometry_for_source(
         if not os.path.isdir(filter_dir):
             os.makedirs(filter_dir)
 
-        prod_file = up.create_product(obj_file_list[filter], filter, no_combine=no_combine)
+        prod_file = up.create_product(obj_file_list[filter], filter, no_combine=no_combine, allow_different_frametime=allow_different_frametime)
         phot_file = up.run_uvotmaghist(prod_file, sn_reg, bg_reg, filter)
 
         template_exists = filter in tem_file_list
         if template_exists:
             prod_file_t = up.create_product(
-                tem_file_list[filter], filter, template=1, no_combine=no_combine
+                tem_file_list[filter], filter, template=1, no_combine=no_combine, allow_different_frametime=allow_different_frametime
             )
             templ_file = up.run_uvotmaghist(prod_file_t, sn_reg, bg_reg, filter)
             mag_filter = up.extract_photometry(
@@ -104,6 +166,8 @@ def main():
     parser.add_argument("-a", "--ab", dest="ab", action="store_true", help="Use AB magnitudes")
     parser.add_argument("-f", "--filter", dest="filter", default="ALL", help="Filters to use")
     parser.add_argument("--no_combine", dest="no_combine", action="store_true", help="Do not merge extensions")
+    parser.add_argument("--allow_different_frametime", dest="allow_different_frametime", action="store_true",
+                        help="Combine extensions with different FRAMTIME (photometry may be less accurate)")
     parser.add_argument("--sn-reg", dest="sn_reg", default="sn.reg", help="Source region path (written per source)")
     parser.add_argument("--bg-reg", dest="bg_reg", default="snbkg.reg", help="Background region path (written per source)")
     args = parser.parse_args()
@@ -172,6 +236,7 @@ def main():
                 args.det_limit,
                 filt_list,
                 args.no_combine,
+                allow_different_frametime=args.allow_different_frametime,
             )
         except Exception as e:
             print(f"  Error: {e}", file=sys.stderr)

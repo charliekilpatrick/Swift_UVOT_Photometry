@@ -40,6 +40,18 @@ JD_OFFSET = 2458000.0
 
 
 def is_number(num):
+    """Return True if the value can be converted to float.
+
+    Parameters
+    ----------
+    num : any
+        Value to test.
+
+    Returns
+    -------
+    bool
+        True if float(num) succeeds.
+    """
     try:
         float(num)
         return True
@@ -48,7 +60,20 @@ def is_number(num):
 
 
 def parse_coord(ra, dec):
-    """Parse RA, Dec to SkyCoord (degrees or sexagesimal)."""
+    """Parse RA and Dec (degrees or sexagesimal) to an ICRS SkyCoord.
+
+    Parameters
+    ----------
+    ra : str or float
+        Right ascension.
+    dec : str or float
+        Declination.
+
+    Returns
+    -------
+    astropy.coordinates.SkyCoord or None
+        Coordinates, or None if parsing fails (error printed).
+    """
     ra_str, dec_str = str(ra).strip(), str(dec).strip()
     if ':' in ra_str or ':' in dec_str:
         unit = (u.hourangle, u.deg)
@@ -62,7 +87,18 @@ def parse_coord(ra, dec):
 
 
 def tpeak_to_time(tpeak):
-    """Convert tpeak (JD - 2458000) to astropy Time object."""
+    """Convert tpeak (JD - 2458000) to an astropy Time object.
+
+    Parameters
+    ----------
+    tpeak : float
+        Days relative to JD 2458000.
+
+    Returns
+    -------
+    astropy.time.Time
+        Time in JD format.
+    """
     jd = float(tpeak) + JD_OFFSET
     return Time(jd, format='jd')
 
@@ -346,10 +382,23 @@ def download_swift_data(obstable, outdir='.', archive_dir=None, sky_only=True, d
 
 
 def check_coord_in_image(coord, fits_file, debug=False):
-    """
-    Check if coordinates are within the FOV of a FITS image using WCS.
-    
-    Returns (in_fov, details_dict).
+    """Check if coordinates fall within the FOV of a UVOT FITS image using WCS.
+
+    Parameters
+    ----------
+    coord : astropy.coordinates.SkyCoord
+        Source position.
+    fits_file : str
+        Path to a UVOT sky or product FITS file.
+    debug : bool, optional
+        If True, add WCS error info to details.
+
+    Returns
+    -------
+    in_fov : bool
+        True if the coordinate is inside a valid image extension.
+    details : dict
+        Keys: 'file', 'in_fov', 'reason', 'filter', 'obsid'; optionally 'pixel_x', 'pixel_y'.
     """
     details = {'file': fits_file, 'in_fov': False, 'reason': None}
     
@@ -411,15 +460,42 @@ def check_coord_in_image(coord, fits_file, debug=False):
     return False, details
 
 
-def create_run_files(coord, obstable, outdir='.', phot_radius=3.0 * u.arcsec, 
+def create_run_files(coord, obstable, outdir='.', phot_radius=3.0 * u.arcsec,
                      max_template=50, debug=False):
-    """Create region files and science/template file lists.
-    
+    """Create region files and science/template image list files for photometry.
+
+    Writes sn.reg, bkg.reg, science.lst, template.lst under outdir. Science/template
+    split uses OBS_TYPE and FOV checks; template list is capped by max_template.
+
     Parameters
     ----------
-    max_template : int
-        Maximum number of template images to include. Set to 0 for unlimited.
-        This prevents memory issues when processing many template images.
+    coord : astropy.coordinates.SkyCoord
+        Source position.
+    obstable : astropy.table.Table
+        Table with OBSID, OBS_TYPE, IN_FOV, etc. (from get_swift_data).
+    outdir : str, optional
+        Output directory (default '.').
+    phot_radius : astropy.units.Quantity, optional
+        Source aperture radius (default 3 arcsec).
+    max_template : int, optional
+        Maximum number of template images to include; 0 = unlimited (default 50).
+    debug : bool, optional
+        Print debug messages.
+
+    Returns
+    -------
+    sn_file : str
+        Path to source region file.
+    bkg_file : str
+        Path to background region file.
+    science_file : str
+        Path to science image list.
+    template_file : str
+        Path to template image list.
+    n_science : int
+        Number of science images.
+    n_template : int
+        Number of template images.
     """
     phot_radius_val = phot_radius.to(u.arcsec).value
     ra_hms, dec_dms = coord.to_string(style='hmsdms', precision=2, sep=':').split()
@@ -506,8 +582,39 @@ def create_run_files(coord, obstable, outdir='.', phot_radius=3.0 * u.arcsec,
 
 
 def run_photometry(sn_file, bkg_file, science_file, template_file, outdir, name,
-                   ab_mag=True, det_limit=3.0):
-    """Run Swift photometry pipeline."""
+                   ab_mag=True, det_limit=3.0, allow_different_frametime=False):
+    """Run the Swift UVOT photometry pipeline (create products, uvotmaghist, extract mags).
+
+    Changes cwd to outdir, builds product files per filter, runs uvotmaghist for
+    object and template, extracts photometry, and writes reduction/ and .phot.
+    Restores cwd on exit.
+
+    Parameters
+    ----------
+    sn_file : str
+        Source region file path.
+    bkg_file : str
+        Background region file path.
+    science_file : str
+        Path to science image list.
+    template_file : str
+        Path to template image list.
+    outdir : str
+        Working directory for reduction (and where reduction/ is created).
+    name : str
+        Object name for output files.
+    ab_mag : bool, optional
+        Use AB magnitudes (default True).
+    det_limit : float, optional
+        S/N detection threshold (default 3.0).
+    allow_different_frametime : bool, optional
+        Allow merging extensions with different FRAMTIME.
+
+    Returns
+    -------
+    dict or None
+        Magnitude dict from output_mags, or None if no science data or on error.
+    """
     orig_dir = os.getcwd()
     os.chdir(outdir)
 
@@ -552,11 +659,11 @@ def run_photometry(sn_file, bkg_file, science_file, template_file, outdir, name,
             os.makedirs(filter_dir, exist_ok=True)
 
             print(f"  Processing filter {filt}...")
-            prod_file = up.create_product(obj_file_list[filt], filt, no_combine=False)
+            prod_file = up.create_product(obj_file_list[filt], filt, no_combine=False, allow_different_frametime=allow_different_frametime)
             phot_file = up.run_uvotmaghist(prod_file, sn_file, bkg_file, filt)
 
             if filt in tem_file_list:
-                prod_file_t = up.create_product(tem_file_list[filt], filt, template=1, no_combine=False)
+                prod_file_t = up.create_product(tem_file_list[filt], filt, template=1, no_combine=False, allow_different_frametime=allow_different_frametime)
                 templ_file = up.run_uvotmaghist(prod_file_t, sn_file, bkg_file, filt)
                 mag_filter = up.extract_photometry(phot_file, ab_mag, det_limit, ap_size, templ_file)
             else:
@@ -576,12 +683,21 @@ def run_photometry(sn_file, bkg_file, science_file, template_file, outdir, name,
 
 
 def parse_input_file(filepath):
-    """
-    Parse input file with columns: name, ra, dec, tpeak
-    Supports CSV or whitespace-separated formats.
-    
-    Also supports BTS format with columns:
-        ZTFID, IAUID, RA, Dec, peakt, ...
+    """Parse input file of sources with name, ra, dec, tpeak (JD - 2458000).
+
+    Supports CSV (with header) or whitespace-separated. Accepts multiple
+    column naming conventions (e.g. BTS: ZTFID, IAUID, RA, Dec, peakt).
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the input file.
+
+    Returns
+    -------
+    list of dict
+        Each dict has keys 'name', 'ra', 'dec', 'tpeak' (float). Rows missing
+        required fields are skipped.
     """
     sources = []
 
@@ -650,9 +766,14 @@ def parse_input_file(filepath):
 
 
 def check_heasoft_environment():
-    """
-    Check that HEASoft and CALDB environment variables are set.
-    Returns (ok, message) tuple.
+    """Check that HEASoft and CALDB are configured and uvotmaghist is available.
+
+    Returns
+    -------
+    ok : bool
+        True if HEADAS, CALDB, CALDBCONFIG are set and valid and uvotmaghist is in PATH.
+    issues : list of str
+        List of issue descriptions if ok is False; empty list if ok is True.
     """
     issues = []
     
@@ -720,6 +841,8 @@ def main():
                         help="Use AB magnitudes")
     parser.add_argument("-d", "--detection", type=float, default=3.0,
                         help="Detection S/N limit")
+    parser.add_argument("--allow-different-frametime", dest="allow_different_frametime", action="store_true",
+                        help="Combine extensions with different FRAMTIME (photometry may be less accurate)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done without executing")
     parser.add_argument("--debug", action="store_true",
@@ -891,7 +1014,8 @@ def main():
         mag = run_photometry(
             sn_file, bkg_file, science_file, template_file,
             outdir, name,
-            ab_mag=args.ab, det_limit=args.detection
+            ab_mag=args.ab, det_limit=args.detection,
+            allow_different_frametime=args.allow_different_frametime
         )
 
         source_elapsed = time.time() - source_start_time

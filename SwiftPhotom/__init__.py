@@ -17,7 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Swift_host_subtraction.  If not, see <http://www.gnu.org/licenses/>
 
-"""Swift_host_subtraction
+"""Swift_host_subtraction: Swift UVOT aperture and template-subtracted photometry.
+
+This package provides a Python wrapper around HEASoft commands for aperture
+and image-subtracted photometry on Swift UVOT data, following the methods
+of Brown et al. (2009, 2014).
+
+Submodules
+----------
+commands : Run HEASoft shell commands (uvotimsum, uvotmaghist, fcopy, fappend).
+help : CLI help strings for the bin scripts.
+uvot : UVOT-specific logic (filter sorting, aspect correction, product creation).
 """
 
 try:

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""Standalone script to query HEASARC for Swift UVOT data and download by ObsID.
+
+Uses discovery date and max_delta_date to classify science vs template.
+See Swift_batch_photom.py for the main batch pipeline with FOV filtering and archive.
+"""
 from astroquery.heasarc import Heasarc
 from astropy.coordinates import SkyCoord
 from astropy import units as u

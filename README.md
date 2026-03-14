@@ -19,24 +19,21 @@ Based on [Peter J. Brown](https://pbrown801.github.io)'s IDL work ([PhD thesis](
   ```bash
   conda env create -f environment.yml
   conda activate swift-photom
-  bash scripts/setup_conda_hooks.sh   # run once to enable auto-init
   ```
 
-  After running the setup script, HEASoft and CALDB will initialize automatically whenever you run `conda activate swift-photom`.
-
-  To install HEASoft into an existing environment:
-
-  ```bash
-  conda install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge heasoft
-  ```
-
-  If you didn't run the setup script, manually initialize each session:
+  After activating, initialize HEASoft and CALDB in that terminal (or add these lines to your shell profile so they run on every login):
 
   ```bash
   source $CONDA_PREFIX/headas-init.sh
   export CALDB=$CONDA_PREFIX/caldb
   export CALDBCONFIG=$CALDB/software/tools/caldb.config
   export CALDBALIAS=$CALDB/software/tools/alias_config.fits
+  ```
+
+  To install HEASoft into an existing environment:
+
+  ```bash
+  conda install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge heasoft
   ```
 
   Verify with: `caldbinfo INST SWIFT UVOTA`
@@ -185,9 +182,37 @@ Run `Swift_batch_photom.py -h` for all options.
 ## Repository
 
 - **Package:** `Swift-host-subtraction` (PyPI) / **import:** `SwiftPhotom`
+- **Version:** The package uses [setuptools-scm](https://github.com/pypa/setuptools_scm) for versioning; installed version is available as `SwiftPhotom.__version__`.
 - **Repo:** [github.com/gterreran/Swift_host_subtraction](https://github.com/gterreran/Swift_host_subtraction)
 - **License:** GPLv3+ ([LICENSE](LICENSE))
-- **Layout:** `SwiftPhotom/` (package), `bin/` (CLI scripts), `docs/`, `tests/`
+
+Build and packaging are driven by **pyproject.toml**; **MANIFEST.in** controls which files are included in source distributions (e.g. `pip sdist`). Unused or obsolete configuration has been removed (e.g. `setup.cfg`, `.codecov.yml`, conda build recipe in `conda/`, and the `scripts/` directory).
+
+**Layout**
+
+| Path | Description |
+|------|-------------|
+| `SwiftPhotom/` | Main package: `commands` (HEASoft wrappers), `uvot` (filters, aspect correction, products, photometry), `errors`, `help` (CLI strings) |
+| `bin/` | Command-line entry points (see below) |
+| `tests/` | Pytest suite (unit tests for uvot, commands, errors, help, batch/csv/setup/download scripts; HEASoft integration tests skipped when not configured) |
+| `docs/` | Sphinx documentation source |
+| `environment.yml` | Conda environment definition (Python + HEASoft + this package) for Option A installation |
+
+**Command-line entry points (`bin/`)**
+
+| Script | Description | Typical use |
+|--------|-------------|-------------|
+| **Swift_photom_host.py** | Run aperture or template-subtracted photometry for a **single source**. Reads object (and optional template) image lists or ObsIDs, builds stacked products per filter, runs uvotmaghist, writes JSON and `.phot` under `reduction/`. | You already have sky images and region files; you want light curves for one object (e.g. one transient) with or without template subtraction. |
+| **Swift_photom_csv.py** | Same pipeline as `Swift_photom_host` for **multiple sources** from a CSV. For each row (name, RA, Dec), writes temporary region files, runs photometry, and saves results under `reduction_<name>/`; optionally writes a combined results CSV. | You have one shared set of image lists (and optional template list) and many source positions; you want light curves for all of them in one run. |
+| **Swift_batch_photom.py** | **End-to-end batch pipeline** for transient surveys: reads an input file (name, RA, Dec, tpeak), queries HEASARC for Swift UVOT observations, downloads data (with optional shared archive and symlinks), builds science/template lists by time and FOV, runs photometry, and writes results to `<outdir>/<name>/`. | You have a list of transients (e.g. SNe) and want to automatically fetch Swift data, split science vs template by epoch, and get template-subtracted light curves without preparing image lists by hand. |
+| **download_swift.py** | **Standalone download + setup** for one position and date range: queries HEASARC, downloads UVOT data by ObsID (no archive/symlinks), classifies science vs template by discovery date, creates region files and science/template lists. Prints a suggested `Swift_photom_host` command. | You want to pull Swift data for a single target with a fixed discovery date and run photometry yourself; or you prefer the simpler download logic without FOV filtering or shared archive. |
+| **Swift_setup.py** | **Query and table helpers**: queries HEASARC for UVOT image table at a position, adds science/template tags by relative date, and can write region files and science/template `.dat` lists. Supports dry-run download of selected images. | You need a table of available observations and science/template split (e.g. for inspection or custom pipelines) or minimal reduction files without running the full photometry pipeline. |
+
+**Code and testing**
+
+- Public modules and functions are documented with **NumPy-style docstrings** (Parameters, Returns, Raises).
+- Unit tests live in `tests/` and can be run with `pytest tests/ -v`. For coverage: `pytest tests/ --cov=SwiftPhotom --cov-report=term-missing`. Tests that require HEASoft or CALDB (e.g. `tests/test_heasoft.py`) are skipped automatically when the environment is not set up.
+- Build and editable install with dev dependencies: `pip install -e ".[dev]"`.
 
 **Warning:** Each run of `Swift_photom_host` (or each source in the CSV run) overwrites or creates a new `reduction` (or `reduction_<name>`) directory; copy or rename results if you need to keep them.
 

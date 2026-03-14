@@ -122,3 +122,78 @@ class TestOutputMags:
         # JSON is written before in-memory dedup in output_mags, so input length preserved
         assert len(data) == 2
         assert data[0]["filter"] == "U" and data[0]["mjd"] == 58000.0
+
+
+class TestAspectCorrection:
+    """Tests for aspect-corrected extension filtering."""
+
+    def test_all_direct_returns_all_extensions(self, minimal_uvot_fits):
+        """When all extensions have ASPCORR=DIRECT, all (non-primary) are returned."""
+        good, bad = up.get_aspect_corrected_extension_indices(minimal_uvot_fits)
+        assert len(bad) == 0
+        assert 1 in good
+
+    def test_mixed_aspect_returns_only_direct(self, tmp_path):
+        """Extensions without ASPCORR=DIRECT are in bad list."""
+        from astropy.io import fits
+        import numpy as np
+        path = tmp_path / "mixed.fits"
+        hdu_list = fits.HDUList()
+        hdu_list.append(fits.PrimaryHDU())
+        for i, asp in enumerate(["DIRECT", "RAW", "DIRECT", "NONE"]):
+            ext = fits.ImageHDU(data=np.zeros((5, 5)), name=f"ext{i+1}")
+            ext.header["ASPCORR"] = asp
+            ext.header["FRAMTIME"] = 0.011
+            hdu_list.append(ext)
+        hdu_list.writeto(path, overwrite=True)
+        good, bad = up.get_aspect_corrected_extension_indices(str(path))
+        assert good == [1, 3]
+        assert bad == [2, 4]
+
+    def test_no_direct_returns_empty_good(self, tmp_path):
+        """When no extension is aspect-corrected, good is empty."""
+        from astropy.io import fits
+        import numpy as np
+        path = tmp_path / "raw.fits"
+        hdu_list = fits.HDUList()
+        hdu_list.append(fits.PrimaryHDU())
+        ext = fits.ImageHDU(data=np.zeros((5, 5)))
+        ext.header["ASPCORR"] = "RAW"
+        hdu_list.append(ext)
+        hdu_list.writeto(path, overwrite=True)
+        good, bad = up.get_aspect_corrected_extension_indices(str(path))
+        assert good == []
+        assert bad == [1]
+
+    def test_check_aspect_correction_returns_same_as_get_indices(self, minimal_uvot_fits):
+        """check_aspect_correction returns same good/bad as get_aspect_corrected_extension_indices."""
+        good1, bad1 = up.get_aspect_corrected_extension_indices(minimal_uvot_fits)
+        good2, bad2 = up.check_aspect_correction(minimal_uvot_fits)
+        assert good1 == good2
+        assert bad1 == bad2
+
+
+class TestCombine:
+    """Tests for combine() (fcopy + fappend)."""
+
+    def test_combine_calls_fcopy_then_fappend(self, tmp_path_cwd, minimal_uvot_fits):
+        """combine with two files should call fcopy then fappend (mocked)."""
+        import unittest.mock as mock
+        import SwiftPhotom.commands as sc
+        with mock.patch.object(sc, 'run') as mock_run:
+            out_file = str(tmp_path_cwd / "combined.fits")
+            up.combine([minimal_uvot_fits, minimal_uvot_fits], out_file)
+            assert mock_run.call_count == 2
+            calls = [c[0][0] for c in mock_run.call_args_list]
+            assert any('fcopy' in c for c in calls)
+            assert any('fappend' in c for c in calls)
+
+    def test_combine_single_file_calls_fcopy_only(self, tmp_path_cwd, minimal_uvot_fits):
+        """combine with one file only calls fcopy."""
+        import unittest.mock as mock
+        import SwiftPhotom.commands as sc
+        with mock.patch.object(sc, 'run') as mock_run:
+            out_file = str(tmp_path_cwd / "single.fits")
+            up.combine([minimal_uvot_fits], out_file)
+            assert mock_run.call_count == 1
+            assert 'fcopy' in mock_run.call_args[0][0]

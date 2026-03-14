@@ -1,15 +1,15 @@
 # Conda environment with Swift_host_subtraction and HEASoft.
 #
-# Setup (run once):
 #   conda env create -f environment.yml
 #   conda activate swift-photom
-#   bash scripts/setup_conda_hooks.sh   # auto-initialize HEASoft on activate
 #
-# After setup, just use:
-#   conda activate swift-photom
+# After each activate, initialize HEASoft and CALDB (or add to your shell profile):
+#   source $CONDA_PREFIX/headas-init.sh
+#   export CALDB=$CONDA_PREFIX/caldb
+#   export CALDBCONFIG=$CALDB/software/tools/caldb.config
+#   export CALDBALIAS=$CALDB/software/tools/alias_config.fits
 #
-# HEASoft is provided by HEASARC's conda channel (6.35+). The setup script
-# configures activation hooks so HEASoft and CALDB are initialized automatically.
+# HEASoft is provided by HEASARC's conda channel (6.35+).
 
 name: swift-photom
 channels:
