@@ -1,0 +1,206 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;no title&gt; &mdash; Swift UVOT Photometry 0.1.dev57 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+      <link rel="stylesheet" href="../_static/swift-uvot-photometry-docs.css" type="text/css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3a448e78"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Swift UVOT Photometry
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command-line scripts (bin/)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs/index.html">Input types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extraction/index.html">Photometry Extraction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Swift UVOT Photometry</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/SwiftPhotom.commands.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p id="module-SwiftPhotom.commands">Run HEASoft shell commands (uvotimsum, uvotmaghist, fcopy, fappend).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SwiftPhotom.commands.fappend">
+<span class="sig-prename descclassname"><span class="pre">SwiftPhotom.commands.</span></span><span class="sig-name descname"><span class="pre">fappend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SwiftPhotom/commands.html#fappend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SwiftPhotom.commands.fappend" title="Link to this definition"></a></dt>
+<dd><p>Append one FITS file to another using HEASoft fappend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>_in</strong><span class="classifier">str</span></dt><dd><p>FITS file to append.</p>
+</dd>
+<dt><strong>_out</strong><span class="classifier">str</span></dt><dd><p>Target FITS file (will have _in appended).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SwiftPhotom.commands.fcopy">
+<span class="sig-prename descclassname"><span class="pre">SwiftPhotom.commands.</span></span><span class="sig-name descname"><span class="pre">fcopy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SwiftPhotom/commands.html#fcopy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SwiftPhotom.commands.fcopy" title="Link to this definition"></a></dt>
+<dd><p>Copy a FITS file using HEASoft fcopy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>_in</strong><span class="classifier">str</span></dt><dd><p>Source FITS file path.</p>
+</dd>
+<dt><strong>_out</strong><span class="classifier">str</span></dt><dd><p>Destination FITS file path.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SwiftPhotom.commands.run">
+<span class="sig-prename descclassname"><span class="pre">SwiftPhotom.commands.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SwiftPhotom/commands.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SwiftPhotom.commands.run" title="Link to this definition"></a></dt>
+<dd><p>Execute a shell command and return stdout; exit on stderr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>_command</strong><span class="classifier">str</span></dt><dd><p>Shell command to run (e.g. <code class="docutils literal notranslate"><span class="pre">uvotimsum</span> <span class="pre">infile</span> <span class="pre">outfile</span> <span class="pre">...</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>bytes</dt><dd><p>Standard output of the command.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>SystemExit</dt><dd><p>If the command writes to stderr.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SwiftPhotom.commands.uvotimsum">
+<span class="sig-prename descclassname"><span class="pre">SwiftPhotom.commands.</span></span><span class="sig-name descname"><span class="pre">uvotimsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignoreframetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SwiftPhotom/commands.html#uvotimsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SwiftPhotom.commands.uvotimsum" title="Link to this definition"></a></dt>
+<dd><p>Sum UVOT sky images into a single output file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>_in</strong><span class="classifier">str</span></dt><dd><p>Input FITS file (optionally with extension specifier).</p>
+</dd>
+<dt><strong>_out</strong><span class="classifier">str</span></dt><dd><p>Output FITS file path.</p>
+</dd>
+<dt><strong>_exclude</strong><span class="classifier">str, optional</span></dt><dd><p>Comma-separated extension indices to exclude, or <code class="docutils literal notranslate"><span class="pre">'none'</span></code>.</p>
+</dd>
+<dt><strong>ignoreframetime</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, combine extensions with different FRAMTIME (uvotimsum
+ignoreframetime=yes). Photometry on the sum may be less accurate.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SwiftPhotom.commands.uvotmaghist">
+<span class="sig-prename descclassname"><span class="pre">SwiftPhotom.commands.</span></span><span class="sig-name descname"><span class="pre">uvotmaghist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_bgreg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_gif</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SwiftPhotom/commands.html#uvotmaghist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SwiftPhotom.commands.uvotmaghist" title="Link to this definition"></a></dt>
+<dd><p>Run uvotmaghist for aperture photometry with curve-of-growth correction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>_in</strong><span class="classifier">str</span></dt><dd><p>Input image or stacked product FITS file.</p>
+</dd>
+<dt><strong>_reg</strong><span class="classifier">str</span></dt><dd><p>DS9 region file for the source aperture.</p>
+</dd>
+<dt><strong>_bgreg</strong><span class="classifier">str</span></dt><dd><p>DS9 region file for the background.</p>
+</dd>
+<dt><strong>_out</strong><span class="classifier">str</span></dt><dd><p>Output photometry FITS file.</p>
+</dd>
+<dt><strong>_gif</strong><span class="classifier">str</span></dt><dd><p>Output plot file path (e.g. GIF).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Giacomo Terreran; 2024+, Charlie Kilpatrick.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

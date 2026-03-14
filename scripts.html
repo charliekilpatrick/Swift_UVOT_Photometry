@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command-line scripts (bin/) &mdash; Swift UVOT Photometry 0.1.dev57 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+      <link rel="stylesheet" href="_static/swift-uvot-photometry-docs.css" type="text/css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=3a448e78"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input types" href="inputs/index.html" />
+    <link rel="prev" title="Welcome to SwiftPhotom’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Swift UVOT Photometry
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command-line scripts (bin/)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#swift-photom-host-py">Swift_photom_host.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swift-photom-csv-py">Swift_photom_csv.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swift-batch-photom-py">Swift_batch_photom.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#download-swift-py">download_swift.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swift-setup-py">Swift_setup.py</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inputs/index.html">Input types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extraction/index.html">Photometry Extraction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Swift UVOT Photometry</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Command-line scripts (bin/)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/scripts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="command-line-scripts-bin">
+<span id="scripts"></span><h1>Command-line scripts (bin/)<a class="headerlink" href="#command-line-scripts-bin" title="Link to this heading"></a></h1>
+<p>The package installs the following scripts under <code class="docutils literal notranslate"><span class="pre">bin/</span></code>. They are also
+available as entry points after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">Swift_photom_host.py</span></code>).</p>
+<section id="swift-photom-host-py">
+<h2>Swift_photom_host.py<a class="headerlink" href="#swift-photom-host-py" title="Link to this heading"></a></h2>
+<p>Run aperture or template-subtracted photometry for a <strong>single source</strong>.</p>
+<ul class="simple">
+<li><p><strong>Inputs:</strong> Object (and optional template) image list(s) or ObsID(s), plus
+source and background region files (DS9 format).</p></li>
+<li><p><strong>Output:</strong> JSON, <code class="docutils literal notranslate"><span class="pre">.phot</span></code> file, and per-filter figures under <code class="docutils literal notranslate"><span class="pre">reduction/</span></code>.</p></li>
+</ul>
+<p><strong>Typical use:</strong> You already have sky images and region files; you want light
+curves for one object (e.g. one transient) with or without template subtraction.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Swift_photom_host.py<span class="w"> </span>obj.lst<span class="w"> </span>-s<span class="w"> </span>sn.reg<span class="w"> </span>-b<span class="w"> </span>snbkg.reg
+Swift_photom_host.py<span class="w"> </span>obj.lst<span class="w"> </span>templ.lst<span class="w"> </span>-s<span class="w"> </span>sn.reg<span class="w"> </span>-b<span class="w"> </span>snbkg.reg
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">-h</span></code> for options (e.g. <code class="docutils literal notranslate"><span class="pre">-a</span></code> for AB mags, <code class="docutils literal notranslate"><span class="pre">-d</span></code> detection threshold).</p>
+</section>
+<section id="swift-photom-csv-py">
+<h2>Swift_photom_csv.py<a class="headerlink" href="#swift-photom-csv-py" title="Link to this heading"></a></h2>
+<p>Same pipeline as <code class="docutils literal notranslate"><span class="pre">Swift_photom_host</span></code> for <strong>multiple sources</strong> from a CSV.</p>
+<ul class="simple">
+<li><p><strong>Inputs:</strong> CSV with columns <strong>name</strong>, <strong>RA</strong>, <strong>Dec</strong> (optionally <strong>date</strong>);
+one object image list (and optional template list).</p></li>
+<li><p><strong>Output:</strong> For each row, temporary region files and results under
+<code class="docutils literal notranslate"><span class="pre">reduction_&lt;name&gt;/</span></code>; optional combined table (e.g. <code class="docutils literal notranslate"><span class="pre">results.csv</span></code>).</p></li>
+</ul>
+<p><strong>Typical use:</strong> One shared set of image lists and many source positions; light
+curves for all of them in one run.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Swift_photom_csv.py<span class="w"> </span>sources.csv<span class="w"> </span>obj.lst<span class="w"> </span>-o<span class="w"> </span>results.csv
+</pre></div>
+</div>
+<p>Optional flags: <code class="docutils literal notranslate"><span class="pre">--ap-arcsec</span></code>, <code class="docutils literal notranslate"><span class="pre">--bkg-inner</span></code>, <code class="docutils literal notranslate"><span class="pre">--bkg-outer</span></code>, <code class="docutils literal notranslate"><span class="pre">-a</span></code>, <code class="docutils literal notranslate"><span class="pre">-d</span></code>.
+Run <code class="docutils literal notranslate"><span class="pre">Swift_photom_csv.py</span> <span class="pre">-h</span></code> for details.</p>
+</section>
+<section id="swift-batch-photom-py">
+<h2>Swift_batch_photom.py<a class="headerlink" href="#swift-batch-photom-py" title="Link to this heading"></a></h2>
+<p><strong>End-to-end batch pipeline</strong> for transient surveys.</p>
+<ul class="simple">
+<li><p><strong>Inputs:</strong> File (CSV or whitespace-separated) with <strong>name</strong>, <strong>RA</strong>, <strong>Dec</strong>,
+<strong>tpeak</strong> (JD − 2458000). Time windows: science = tpeak − 60 to tpeak + 365
+days; template = before tpeak − 60 days.</p></li>
+<li><p><strong>Actions:</strong> Queries HEASARC for Swift UVOT observations, downloads data
+(optional shared archive and symlinks), builds science/template lists, runs
+photometry, writes results to <code class="docutils literal notranslate"><span class="pre">&lt;outdir&gt;/&lt;name&gt;/</span></code>.</p></li>
+</ul>
+<p><strong>Typical use:</strong> List of transients (e.g. SNe); automatically fetch Swift data,
+split science vs template by epoch, and get template-subtracted light curves.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Swift_batch_photom.py<span class="w"> </span>sources.txt<span class="w"> </span>-o<span class="w"> </span>/path/to/output
+</pre></div>
+</div>
+<p><strong>Options:</strong> <code class="docutils literal notranslate"><span class="pre">--pre-days</span></code> / <code class="docutils literal notranslate"><span class="pre">--post-days</span></code>, <code class="docutils literal notranslate"><span class="pre">--radius</span></code>, <code class="docutils literal notranslate"><span class="pre">--phot-radius</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--archive-dir</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-archive</span></code>, <code class="docutils literal notranslate"><span class="pre">--download-all</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-download</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--dry-run</span></code>. Run <code class="docutils literal notranslate"><span class="pre">Swift_batch_photom.py</span> <span class="pre">-h</span></code> for all options.</p>
+</section>
+<section id="download-swift-py">
+<h2>download_swift.py<a class="headerlink" href="#download-swift-py" title="Link to this heading"></a></h2>
+<p><strong>Standalone download and setup</strong> for one position and date range.</p>
+<ul class="simple">
+<li><p><strong>Actions:</strong> Queries HEASARC, downloads UVOT data by ObsID (no archive or
+symlinks), classifies science vs template by discovery date, creates region
+files and science/template lists. Prints a suggested <code class="docutils literal notranslate"><span class="pre">Swift_photom_host</span></code>
+command.</p></li>
+</ul>
+<p><strong>Typical use:</strong> Pull Swift data for a single target with a fixed discovery
+date and run photometry yourself; or use simpler download logic without FOV
+filtering or shared archive.</p>
+</section>
+<section id="swift-setup-py">
+<h2>Swift_setup.py<a class="headerlink" href="#swift-setup-py" title="Link to this heading"></a></h2>
+<p><strong>Query and table helpers</strong> for inspecting available data and building minimal
+reduction inputs.</p>
+<ul class="simple">
+<li><p><strong>Actions:</strong> Queries HEASARC for UVOT image table at a position, adds
+science/template tags by relative date, can write region files and
+science/template <code class="docutils literal notranslate"><span class="pre">.dat</span></code> lists. Supports dry-run download of selected
+images.</p></li>
+</ul>
+<p><strong>Typical use:</strong> Table of available observations and science/template split for
+inspection or custom pipelines; or minimal reduction files without running the
+full photometry pipeline.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to SwiftPhotom’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="inputs/index.html" class="btn btn-neutral float-right" title="Input types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Giacomo Terreran; 2024+, Charlie Kilpatrick.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

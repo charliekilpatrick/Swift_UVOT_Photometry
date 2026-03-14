@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SwiftPhotom.commands &mdash; Swift UVOT Photometry 0.1.dev57 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+      <link rel="stylesheet" href="../../_static/swift-uvot-photometry-docs.css" type="text/css" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3a448e78"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Swift UVOT Photometry
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Command-line scripts (bin/)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../inputs/index.html">Input types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extraction/index.html">Photometry Extraction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Swift UVOT Photometry</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">SwiftPhotom.commands</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for SwiftPhotom.commands</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Run HEASoft shell commands (uvotimsum, uvotmaghist, fcopy, fappend).&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="run">
+<a class="viewcode-back" href="../../api/SwiftPhotom.commands.html#SwiftPhotom.commands.run">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="n">_command</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute a shell command and return stdout; exit on stderr.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _command : str</span>
+<span class="sd">        Shell command to run (e.g. ``uvotimsum infile outfile ...``).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bytes</span>
+<span class="sd">        Standard output of the command.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        If the command writes to stderr.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pid</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">_command</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="n">output</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">pid</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR while running &#39;</span> <span class="o">+</span> <span class="n">_command</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+
+<div class="viewcode-block" id="uvotimsum">
+<a class="viewcode-back" href="../../api/SwiftPhotom.commands.html#SwiftPhotom.commands.uvotimsum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">uvotimsum</span><span class="p">(</span><span class="n">_in</span><span class="p">,</span> <span class="n">_out</span><span class="p">,</span> <span class="n">_exclude</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">ignoreframetime</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum UVOT sky images into a single output file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _in : str</span>
+<span class="sd">        Input FITS file (optionally with extension specifier).</span>
+<span class="sd">    _out : str</span>
+<span class="sd">        Output FITS file path.</span>
+<span class="sd">    _exclude : str, optional</span>
+<span class="sd">        Comma-separated extension indices to exclude, or ``&#39;none&#39;``.</span>
+<span class="sd">    ignoreframetime : bool, optional</span>
+<span class="sd">        If True, combine extensions with different FRAMTIME (uvotimsum</span>
+<span class="sd">        ignoreframetime=yes). Photometry on the sum may be less accurate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ign</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span> <span class="k">if</span> <span class="n">ignoreframetime</span> <span class="k">else</span> <span class="s1">&#39;no&#39;</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="s1">&#39;uvotimsum </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> exclude=</span><span class="si">%s</span><span class="s1"> ignoreframetime=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_in</span><span class="p">,</span> <span class="n">_out</span><span class="p">,</span> <span class="n">_exclude</span><span class="p">,</span> <span class="n">ign</span><span class="p">)</span>
+    <span class="n">run</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="uvotmaghist">
+<a class="viewcode-back" href="../../api/SwiftPhotom.commands.html#SwiftPhotom.commands.uvotmaghist">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">uvotmaghist</span><span class="p">(</span><span class="n">_in</span><span class="p">,</span> <span class="n">_reg</span><span class="p">,</span> <span class="n">_bgreg</span><span class="p">,</span> <span class="n">_out</span><span class="p">,</span> <span class="n">_gif</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run uvotmaghist for aperture photometry with curve-of-growth correction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _in : str</span>
+<span class="sd">        Input image or stacked product FITS file.</span>
+<span class="sd">    _reg : str</span>
+<span class="sd">        DS9 region file for the source aperture.</span>
+<span class="sd">    _bgreg : str</span>
+<span class="sd">        DS9 region file for the background.</span>
+<span class="sd">    _out : str</span>
+<span class="sd">        Output photometry FITS file.</span>
+<span class="sd">    _gif : str</span>
+<span class="sd">        Output plot file path (e.g. GIF).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;uvotmaghist </span><span class="si">%s</span><span class="s1"> srcreg=</span><span class="si">%s</span><span class="s1"> bkgreg=</span><span class="si">%s</span><span class="s1"> outfile=</span><span class="si">%s</span><span class="s1"> plotfile=</span><span class="si">%s</span><span class="s1"> &#39;</span>
+            <span class="s1">&#39;coinfile=caldb zerofile=caldb exclude=none chatter=0 clobber=yes &#39;</span>
+            <span class="s1">&#39;logtime=no psffile=caldb apercorr=curveofgrowth&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_in</span><span class="p">,</span> <span class="n">_reg</span><span class="p">,</span> <span class="n">_bgreg</span><span class="p">,</span> <span class="n">_out</span><span class="p">,</span> <span class="n">_gif</span><span class="p">))</span>
+    <span class="n">run</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fappend">
+<a class="viewcode-back" href="../../api/SwiftPhotom.commands.html#SwiftPhotom.commands.fappend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fappend</span><span class="p">(</span><span class="n">_in</span><span class="p">,</span> <span class="n">_out</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Append one FITS file to another using HEASoft fappend.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _in : str</span>
+<span class="sd">        FITS file to append.</span>
+<span class="sd">    _out : str</span>
+<span class="sd">        Target FITS file (will have _in appended).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="s1">&#39;fappend &#39;</span> <span class="o">+</span> <span class="n">_in</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">_out</span>
+    <span class="n">run</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fcopy">
+<a class="viewcode-back" href="../../api/SwiftPhotom.commands.html#SwiftPhotom.commands.fcopy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fcopy</span><span class="p">(</span><span class="n">_in</span><span class="p">,</span> <span class="n">_out</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Copy a FITS file using HEASoft fcopy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _in : str</span>
+<span class="sd">        Source FITS file path.</span>
+<span class="sd">    _out : str</span>
+<span class="sd">        Destination FITS file path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="s1">&#39;fcopy &#39;</span> <span class="o">+</span> <span class="n">_in</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">_out</span>
+    <span class="n">run</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Giacomo Terreran; 2024+, Charlie Kilpatrick.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

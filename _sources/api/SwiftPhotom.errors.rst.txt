@@ -1,0 +1,4 @@
+.. automodule:: SwiftPhotom.errors
+   :members:
+   :show-inheritance:
+   :undoc-members:
