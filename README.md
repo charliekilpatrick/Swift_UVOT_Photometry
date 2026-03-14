@@ -1,7 +1,7 @@
 # Swift UVOT Photometry
 
-[![CI](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions/workflows/ci.yml/badge.svg)](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions)
-[![Documentation](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions/workflows/deploy-github-pages.yml/badge.svg)](https://charliekilpatrick.github.io/Swift_UVOT_Photometry/)
+[CI](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions)
+[Documentation](https://charliekilpatrick.github.io/Swift_UVOT_Photometry/)
 
 Python package for aperture and template-subtracted photometry on [Swift UVOT](https://swift.gsfc.nasa.gov/about_swift/uvot_desc.html) data. It runs [HEASoft](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/) commands from Python and is aimed at transient studies.
 
@@ -13,18 +13,17 @@ Based on [Peter J. Brown](https://pbrown801.github.io)'s IDL work ([PhD thesis](
 
 ### 1. Prerequisites
 
-- **Python** 3.9 or newer (3.11–3.12 recommended).
+- **Python** 3.11 or 3.12 (supported versions).
 - **HEASoft** (Swift/UVOT): required for running photometry. Two options:
-  **Option A – Conda (recommended)**  
-  HEASoft 6.35+ is available via HEASARC’s conda channel.   CALDB is not installed by the heasoft conda package; run step 2 once after creating the env.
-
+**Option A – Conda (recommended)**  
+HEASoft 6.35+ is available via HEASARC’s conda channel.   CALDB is not installed by the heasoft conda package; run step 2 once after creating the env.
   1. Create and activate the environment:
   ```bash
   conda env create -f environment.yml
   conda activate swift-photom
   ```
-  2. One-time CALDB setup: run `bash setup_caldb.sh` from the repo root (with the env activated). This downloads CALDB into `$CONDA_PREFIX/caldb` and installs a conda activate script so **HEADAS** and **CALDB** are set automatically whenever you activate this env—which also prevents the “set HEADAS before sourcing headas-uninit.sh” message when activating or switching envs.
-  3. After each activate, initialize HEASoft (and CALDB if not in your profile):
+  1. One-time CALDB setup: run `bash setup_caldb.sh` from the repo root (with the env activated). This downloads CALDB into `$CONDA_PREFIX/caldb` and installs a conda activate script so **HEADAS** and **CALDB** are set automatically whenever you activate this env—which also prevents the “set HEADAS before sourcing headas-uninit.sh” message when activating or switching envs.
+  2. After each activate, initialize HEASoft (and CALDB if not in your profile):
   ```bash
   source $CONDA_PREFIX/headas-init.sh
   export CALDB=$CONDA_PREFIX/caldb
@@ -32,9 +31,7 @@ Based on [Peter J. Brown](https://pbrown801.github.io)'s IDL work ([PhD thesis](
   export CALDBALIAS=$CALDB/software/tools/alias_config.fits
   ```
   Verify with: `caldbinfo INST SWIFT UVOTA`
-
   To install HEASoft into an existing environment, run `conda install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge heasoft`, then run `setup_caldb.sh` once.
-
   **Option B – Manual install**  
   Install from [HEASARC](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/download.html) (Swift packages + [CALDB](https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html)). Then in each terminal (or in `~/.bashrc`):
   ```bash
@@ -192,7 +189,7 @@ Run `Swift_batch_photom.py -h` for all options.
 ## Repository
 
 - **Package:** Swift UVOT Photometry — **import:** `SwiftPhotom` (PyPI: `swift-uvot-photometry`)
-- **Version:** The package uses [setuptools-scm](https://github.com/pypa/setuptools_scm) for versioning; installed version is available as `SwiftPhotom.__version__`.
+- **Version:** The package uses [setuptools-scm](https://github.com/pypa/setuptools_scm) for versioning; installed version is available as `SwiftPhotom.__version_`_.
 - **Repo:** [github.com/ckilpatrick/Swift-uvot-photometry](https://github.com/ckilpatrick/Swift-uvot-photometry)
 - **License:** GPLv3+ ([LICENSE](LICENSE))
 
@@ -224,7 +221,6 @@ Build and packaging are driven by **pyproject.toml**; **MANIFEST.in** controls w
 
 **Code and testing**
 
-- Public modules and functions are documented with **NumPy-style docstrings** (Parameters, Returns, Raises).
 - Unit tests live in `tests/` and can be run with `pytest tests/ -v`. For coverage: `pytest tests/ --cov=SwiftPhotom --cov-report=term-missing`. Tests that require HEASoft or CALDB (e.g. `tests/test_heasoft.py`) are skipped automatically when the environment is not set up.
 - Build and editable install with dev dependencies: `pip install -e ".[dev]"`.
 

@@ -7,7 +7,7 @@ name = "swift-uvot-photometry"
 description = "Swift UVOT Photometry: aperture and template-subtracted photometry on data from the Ultraviolet Optical Telescope (UVOT) on board the Neil Gehrels Swift Observatory. Runs HEASoft commands from Python."
 readme = "README.md"
 license = { text = "GPLv3+" }
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
   { name = "Giacomo Terreran", email = "gterreran@lco.global" },
   { name = "Charlie Kilpatrick", email = "ckilpatrick@northwestern.edu" }
@@ -21,8 +21,6 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
