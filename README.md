@@ -1,7 +1,7 @@
 # Swift UVOT Photometry
 
-[CI](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions)
-[Documentation](https://charliekilpatrick.github.io/Swift_UVOT_Photometry/)
+[![CI](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions/workflows/ci.yml/badge.svg)](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions)
+[![Documentation](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions/workflows/deploy-github-pages.yml/badge.svg)](https://charliekilpatrick.github.io/Swift_UVOT_Photometry/)
 
 Python package for aperture and template-subtracted photometry on [Swift UVOT](https://swift.gsfc.nasa.gov/about_swift/uvot_desc.html) data. It runs [HEASoft](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/) commands from Python and is aimed at transient studies.
 
