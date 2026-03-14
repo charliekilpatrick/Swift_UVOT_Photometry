@@ -37,4 +37,4 @@ except ImportError:
 
 __author__ = 'Giacomo Terreran <gterreran@lco.global>'
 __credits__ = ['Peter Brown <grbpeter@yahoo.com>']
-__all__ = ['commands', 'help', 'uvot']
+__all__ = ['commands', 'help', 'uvot','errors']
