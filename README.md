@@ -1,10 +1,11 @@
 # Swift UVOT Photometry
 
 [![CI](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions/workflows/ci.yml/badge.svg)](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions)
+[![Documentation](https://github.com/charliekilpatrick/Swift_UVOT_Photometry/actions/workflows/deploy-github-pages.yml/badge.svg)](https://charliekilpatrick.github.io/Swift_UVOT_Photometry/)
 
 Python package for aperture and template-subtracted photometry on [Swift UVOT](https://swift.gsfc.nasa.gov/about_swift/uvot_desc.html) data. It runs [HEASoft](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/) commands from Python and is aimed at transient studies.
 
-Based on [Peter J. Brown](https://pbrown801.github.io)'s IDL work ([PhD thesis](https://etda.libraries.psu.edu/files/final_submissions/4865)); photometry follows [Brown et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009AJ....137.4517B/abstract), image subtraction [Brown et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014Ap%26SS.354...89B/abstract). See [documentation](https://ckilpatrick.github.io/Swift-uvot-photometry/) for details.
+Based on [Peter J. Brown](https://pbrown801.github.io)'s IDL work ([PhD thesis](https://etda.libraries.psu.edu/files/final_submissions/4865)); photometry follows [Brown et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009AJ....137.4517B/abstract), image subtraction [Brown et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014Ap%26SS.354...89B/abstract). See the documentation for details.
 
 ---
 

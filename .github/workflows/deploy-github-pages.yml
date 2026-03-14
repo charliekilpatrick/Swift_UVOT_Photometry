@@ -7,36 +7,36 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.7]
+    permissions:
+      contents: write  # push to gh-pages
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: "pip"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install coverage cpp-coveralls flake8 pytest
-        python -m pip install .[doc]
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # setuptools-scm + docs need version from git
 
-    - name: Make dependencies
-      run: |
-        cd docs && make html; cd ../
-        touch docs/_build/html/.nojekyll
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
-    - name: Deploy to GitHub Pages
-      if: success()
-      uses: crazy-max/ghaction-github-pages@v2
-      with:
-        target_branch: gh-pages
-        build_dir: docs/_build/html/
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install .[doc]
+
+      - name: Build docs
+        run: |
+          cd docs && make html && cd ..
+          touch docs/_build/html/.nojekyll
+
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v2
+        with:
+          target_branch: gh-pages
+          build_dir: docs/_build/html/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
